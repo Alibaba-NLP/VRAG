@@ -254,7 +254,6 @@ You can customize your own rollout module in the ```./vrag_agent/generation.py``
 ./train_grpo_qwen2_5_vl_7b.sh
 ```
 
-
 ## 🙏 Acknowledge
 This work is implemented based on [ViDoRAG](https://github.com/Alibaba-NLP/ViDoRAG), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), [Search-R1](https://github.com/PeterGriffinJin/Search-R1), and [verl](https://github.com/volcengine/verl). We greatly appreciate their valuable contributions to the community.
 
