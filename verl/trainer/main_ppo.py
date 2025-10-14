@@ -138,6 +138,9 @@ class TaskRunner:
             mapping[Role.RewardModel] = global_pool_id
 
         reward_manager_name = config.reward_model.get("reward_manager", "naive")
+
+        assert reward_manager_name in ['rm'], f"vrag does not support reward manager {reward_manager_name}"
+
         if reward_manager_name == 'naive':
             from verl.workers.reward_manager import NaiveRewardManager
             reward_manager_cls = NaiveRewardManager
@@ -151,20 +154,37 @@ class TaskRunner:
             raise NotImplementedError
 
         compute_score = get_custom_reward_fn(config)
-        if config.reward_model.get("reward_manager", "naive") == 'rm':
-            reward_fn = reward_manager_cls(tokenizer=tokenizer, num_examine=0, compute_score=compute_score,rm_url=config.reward_model.get("rm_url", "http://0.0.0.0:8003/eval"))
-        else:
-            reward_fn = reward_manager_cls(tokenizer=tokenizer, num_examine=0, compute_score=compute_score)
-        
-        # # Note that we always use function-based RM for validation
-        # val_reward_fn = reward_manager_cls(tokenizer=tokenizer, num_examine=1, compute_score=compute_score)
-        
-        # from verl.workers.reward_manager import RMManager
-        # reward_fn = RMManager(tokenizer=tokenizer, num_examine=0, compute_score=compute_score)
 
-        # somtimes not align with reward fn
-        from verl.workers.reward_manager import RMEvalManager
-        val_reward_fn = RMEvalManager(tokenizer=tokenizer, num_examine=1, compute_score=compute_score,rm_url=config.reward_model.get("rm_url", "http://0.0.0.0:8003/eval"))
+        # ==================== original reward fn =======================
+
+        # if config.reward_model.get("reward_manager", "naive") == 'rm':
+        #     reward_fn = reward_manager_cls(tokenizer=tokenizer, num_examine=0, compute_score=compute_score,rm_url=config.reward_model.get("rm_url", "http://0.0.0.0:8003/eval"))
+        # else:
+        #     reward_fn = reward_manager_cls(tokenizer=tokenizer, num_examine=0, compute_score=compute_score)
+        
+        # # # Note that we always use function-based RM for validation
+        # # val_reward_fn = reward_manager_cls(tokenizer=tokenizer, num_examine=1, compute_score=compute_score)
+        
+        # # from verl.workers.reward_manager import RMManager
+        # # reward_fn = RMManager(tokenizer=tokenizer, num_examine=0, compute_score=compute_score)
+
+        # # somtimes not align with reward fn
+        # from verl.workers.reward_manager import RMEvalManager
+        # val_reward_fn = RMEvalManager(tokenizer=tokenizer, num_examine=1, compute_score=compute_score,rm_url=config.reward_model.get("rm_url", "http://0.0.0.0:8003/eval"))
+
+        # ==================== original reward fn =======================
+
+        rm_params = dict(
+            rm_workers_num=config.reward_model.get("rm_workers_num", 1),
+            rm_url=config.reward_model.get("rm_url", "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"), 
+            rm_key=config.reward_model.get("rm_key", "EMPTY"), 
+            rm_model_name=config.reward_model.get("rm_model_name", "qwen-max-latest")
+        )
+
+        reward_fn = RMManager(tokenizer=tokenizer, num_examine=0, compute_score=compute_score, eval_mode=False, **rm_params)
+        val_reward_fn = RMManager(tokenizer=tokenizer, num_examine=1, compute_score=compute_score, eval_mode=True, **rm_params)
+
+
 
         resource_pool_manager = ResourcePoolManager(resource_pool_spec=resource_pool_spec, mapping=mapping)
 

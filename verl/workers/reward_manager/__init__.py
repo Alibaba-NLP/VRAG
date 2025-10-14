@@ -15,4 +15,3 @@
 from .naive import NaiveRewardManager
 from .prime import PrimeRewardManager
 from .rm import RMManager
-from .rm_eval import RMEvalManager

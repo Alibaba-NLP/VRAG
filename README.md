@@ -1,6 +1,6 @@
 
 
-# <div align="center">✨VRAG-RL: Moving Towards Next-Generation RAG via Multi-Modal Agent RL<div>
+# <div align="center">✨VRAG-RL: Moving Towards Next-Generation RAG via Multi-Modal Agentic RL<div>
 
 <div align="center">
 <!-- <h1>A Multi-round Multi-modal Reinforcement Learning Framework</h1> -->
@@ -72,7 +72,7 @@ conda create -n vrag python=3.10
 git clone https://github.com/alibaba-nlp/VRAG.git
 cd VRAG
 # Install requirements for demo only
-pip install -r requirements.txt
+pip install -r requirements_demo.txt
 ```
 
 ### Run VRAG Demo
@@ -151,27 +151,109 @@ answer = vrag.run('What is the capital of France?')
 </p>
 </div>
 
-Release Soon
-
-<!-- ### Training Dependencies -->
-
-<!-- ```bash
-cd VRAG-RL
+### Training Dependencies
+```bash
+cd VRAG
 # Install requirements for training
-pip install -r requirements.txt
-# Install VRAG-RL
+pip install -r requirements_train.txt
+# Install training dependencies
 pip install -e .
 ```
 
-### Step1. Prepare Data
+### Step1. Prepare Data.
 
+#### Benchmark & Training Data
+Please download the original document repositories and queries for each benchmark separately from [SlideVQA](https://huggingface.co/datasets/NTT-hil-insight/SlideVQA), [ViDoSeek](https://huggingface.co/datasets/autumncc/ViDoSeek) and [MMLongBench-Doc](https://huggingface.co/datasets/yubo2333/MMLongBench-Doc). For training, we mixed part of the [SlideVQA](https://huggingface.co/datasets/NTT-hil-insight/SlideVQA) training set to create the training data. The SlideVQA-train can be used as an example to construct SFT data and RL data. During evaluation, we suggest merge all benchmark corpora into a single corpus to create a more challenging setting that simulates real-world scenarios.
 
+#### Example Data & Dataset Convertion
+Organize all data into the following format, a reference example will be provided in ```example``` directory.
+```json
+{
+    "uid": "04d8bb0db929110f204723c56e5386c1d8d21587_2",
+    "query": "What is the temperature of Steam explosion of Pretreatment for Switchgrass and Sugarcane bagasse preparation?", 
+    "reference_answer": "195-205 Centigrade", 
+    "meta_info": {
+        "file_name": "Pretreatment_of_Switchgrass.pdf", 
+        "reference_page": [10, 11], 
+        "source_type": "Text", 
+        "query_type": "Multi-Hop" 
+    }
+}
+```
 
-### Step2. Build Training Corpus & Run Multi-Modal Search Engine
+Use the script `./scripts/hf_dataset_convert.py` to convert the unified format to Parquet.
+```bash
+python ./scripts/hf_dataset_convert.py
+```
 
+### Step2. Build Training Corpus & Run Multi-Modal Search Engine.
 
+Follow the above section to construct your own corpus and start the search engine.
 
-### Step3. Run RL Training with Qwen2.5-VL-Instruct. -->
+### Step3. Construct High-quality CoT & Learn Patterns via SFT.
+
+To construct high-quality data using scripts `./scripts/data_construct_pipeline.py`, you are welcome to use DashScope based on Alibaba Cloud. You need to set the environment variable `DASH_SCOPE_KEY`:
+```bash
+export DASH_SCOPE_KEY=xxx
+```
+Please note that for expert models, we recommend using models with consistent coordinate systems. If different models are used, it is necessary to map the coordinates to the same coordinate system.
+```python
+def convert_to_qwen25vl_format(bbox, orig_height, orig_width, factor=28, min_pixels=56*56, max_pixels=14*14*4*1280):
+    new_height, new_width = smart_resize(orig_height, orig_width, factor, min_pixels, max_pixels)
+    scale_w = new_width / orig_width
+    scale_h = new_height / orig_height
+    
+    x1, y1, x2, y2 = bbox
+    x1_new = round(x1 * scale_w)
+    y1_new = round(y1 * scale_h)
+    x2_new = round(x2 * scale_w)
+    y2_new = round(y2 * scale_h)
+    
+    x1_new = max(0, min(x1_new, new_width - 1))
+    y1_new = max(0, min(y1_new, new_height - 1))
+    x2_new = max(0, min(x2_new, new_width - 1))
+    y2_new = max(0, min(y2_new, new_height - 1))
+    
+    return [x1_new, y1_new, x2_new, y2_new]
+```
+
+Here, you can use a script `./scripts/cot_convert_sft.py` to convert the sampled data into the llama factory format and then proceed with training using the [llama factory](https://github.com/hiyouga/LLaMA-Factory). When fine-tuning the Qwen2.5VL model, please pay special attention to the maximum and minimum values of the coordinates. You need to normalize the coordinates and images to the same scale, This is also the key to the crop&zoom action: 
+
+$$\hat{\mathcal{R}} = Crop(\mathbf{I}_{raw}, [x_{min} \times \frac{w_{raw}}{w_{encoder}}, y_{min} \times \frac{h_{raw}}{h_{encoder}}, x_{max} \times \frac{w_{raw}}{w_{encoder}}, y_{max} \times \frac{h_{raw}}{h_{encoder}}]).$$
+
+You can find relevant reference code in the [https://github.com/QwenLM/Qwen3-VL/blob/main/qwen-vl-finetune/tools/process_bbox.ipynb](https://github.com/QwenLM/Qwen3-VL/blob/main/qwen-vl-finetune/tools/process_bbox.ipynb), and our code also includes these functions, which you can use directly.
+
+### Step4. Run RL Training with Qwen2.5-VL-Instruct.
+
+#### Reward Function
+
+You can customize your own training reward function in the ```./verl/workers/reward_manager/rm.py```. In this project, we simply modify the reward manager to implement a model-based reward. You can choose to deploy your own model with [vLLM](https://docs.vllm.ai/en/stable/configuration/serve_args.html) or use an [API](https://bailian.console.aliyun.com/#/home). 
+```bash
+# works num for reward model, depends on your qps
+reward_model.rm_workers_num=10 \
+# reward model url, if you deploy your own model, you can use your own model here
+reward_model.rm_url="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" \
+# reward model key, if you deploy model with vLLM, you can use "EMPTY"
+reward_model.rm_key=$DASHSCOPE_API_KEY \
+# reward model name
+reward_model.rm_model_name="qwen-max-latest" \
+```
+
+#### Rollout Module
+
+You can customize your own rollout module in the ```./vrag_agent/generation.py```. The Main Function is ```run_llm_loop```, which contains Generation -> Parse Action -> Observation -> Check Termination :
+
+- Generation ```generate_with_gpu_padding``` pads the training batch and performs generation.
+- Parse Action ```execute_predictions``` interprets the model's output and call API based on various actions to obtain the raw observation.
+- Observation ```process_next_obs``` inserts the retrieved or cropped images into the context after processing.
+- In the final step, check if there are any trajectories with unfinished interactions. For those trajectories that have not retrieved images, add image padding to facilitate batch generation by the vLLM engine.
+
+#### Start Training
+```bash
+# start script
+./train_grpo_qwen2_5_vl_7b.sh
+```
+
 
 ## 🙏 Acknowledge
 This work is implemented based on [ViDoRAG](https://github.com/Alibaba-NLP/ViDoRAG), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), [Search-R1](https://github.com/PeterGriffinJin/Search-R1), and [verl](https://github.com/volcengine/verl). We greatly appreciate their valuable contributions to the community.

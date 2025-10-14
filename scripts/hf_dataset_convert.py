@@ -96,13 +96,19 @@ def convert_dataset(USER_PROMPT,file_list,file_source_list,output_name):
 
     test_dataset = dataset.map(function=make_map_fn_test('test'), with_indices=True, num_proc=8)
 
-    test_dataset.to_parquet(f'./data/rag/{output_name}.parquet')
+    test_dataset.to_parquet(f'./data/{output_name}.parquet')
 
 
 if __name__ == '__main__':
     convert_dataset(
         USER_PROMPT,
-        ['./data/SlideVQA/rag_dataset_raw.json', './data/MMLongDoc/rag_dataset.json','./data/SlideBench/rag_dataset.json'],
+        ['./data/SlideVQA_test.json', './data/MMLongDoc.json','./data/SlideBench.json'],
         ['slidevqa_test', 'mmlongdoc', 'vidoseek'],
-        'overall_test_baseline'
+        'overall_test'
+    )
+    convert_dataset(
+        USER_PROMPT,
+        ['./data/SlideVQA_train.json'],
+        ['slidevqa_train'],
+        'overall_train'
     )

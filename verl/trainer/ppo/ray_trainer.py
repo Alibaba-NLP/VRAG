@@ -47,67 +47,6 @@ from vrag_agent.generation import LLMGenerationManager, GenerationConfig
 
 WorkerType = Type[Worker]
 
-
-
-def recall_ret(sorted_docs, golden_answer_list):
-    """
-    计算召回率（Recall）
-    :param sorted_docs: 一个列表，表示已经排好序的文档
-    :param golden_answer_list: 一个列表，表示所有相关文档（golden answers）
-    :return: Recall 值
-    """
-    # 将两个列表转换为集合，便于快速查找交集
-    sorted_docs_set = set(sorted_docs)
-    golden_answer_set = set(golden_answer_list)
-
-    # 计算交集的大小，即检索到的相关文档数量
-    relevant_retrieved = len(sorted_docs_set.intersection(golden_answer_set))
-
-    # 如果没有相关文档，召回率为0
-    if len(golden_answer_set) == 0:
-        return 0.0
-
-    # 计算召回率
-    recall_value = relevant_retrieved / len(golden_answer_set)
-    return recall_value
-
-def dcg(relevance_scores):
-    """
-    计算折扣累积增益（DCG）
-    :param relevance_scores: 一个列表，表示每个文档的相关性分数
-    :return: DCG 值
-    """
-    dcg_value = 0.0
-    for i, relevance in enumerate(relevance_scores, start=1):
-        dcg_value += (2 ** relevance - 1) / np.log2(i + 1)
-    return dcg_value
-
-def ndcg(sorted_docs, golden_answer_list):
-    """
-    计算归一化折扣累积增益（NDCG）
-    :param sorted_docs: 一个列表，表示已经排好序的文档
-    :param golden_answer_list: 一个列表，表示所有相关文档（golden answers）
-    :return: NDCG 值
-    """
-    # 将文档映射为相关性分数（在 golden_answer_list 中的文档为 1，否则为 0）
-    relevance_scores = [1 if doc in golden_answer_list else 0 for doc in sorted_docs]
-    
-    # 计算 DCG
-    dcg_value = dcg(relevance_scores)
-    
-    # 计算 IDCG（理想情况下的 DCG，所有相关文档都排在前面）
-    ideal_relevance_scores = [1] * len(golden_answer_list) + [0] * (len(sorted_docs) - len(golden_answer_list))
-    idcg_value = dcg(ideal_relevance_scores)
-    
-    # 防止分母为零
-    if idcg_value == 0:
-        return 0.0
-    
-    # 计算 NDCG
-    ndcg_value = dcg_value / idcg_value
-    return ndcg_value
-
-
 class Role(Enum):
     """
     To create more roles dynamically, you can subclass Role and add new members
@@ -1103,7 +1042,7 @@ class RayPPOTrainer(object):
                 # evaluate using reward_function
                 # for certain reward function (e.g. sandbox), the generation can overlap with reward
                 # try:
-                reward_tensor, ndcg_tensor, recall_tensor = self.val_reward_fn(test_batch)
+                reward_tensor = self.val_reward_fn(test_batch)
                 # except:
                     # print(test_batch)
 

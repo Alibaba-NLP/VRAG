@@ -47,6 +47,10 @@ class GenerationConfig:
     max_prompt_length: int 
     num_gpus: int
     search_url: str = None
+    max_model_len: int = 10240
+    image_pad_id: int = 151655
+    endoftext_id: int = 151643
+
 
 class LLMGenerationManager:
     def __init__(
@@ -290,7 +294,7 @@ class LLMGenerationManager:
         )['input_ids']
         padded_ids = padded_ids[0]
 
-        pad_input_ids = torch.full_like(active_batch.batch['input_ids'][0], 151643, dtype=torch.int64)
+        pad_input_ids = torch.full_like(active_batch.batch['input_ids'][0], self.config.endoftext_id, dtype=torch.int64) #151643
         pad_input_ids[:len(padded_ids)] = padded_ids
         pad_attention_mask = self.tensor_fn.create_attention_mask(pad_input_ids)
         pad_input_ids = pad_input_ids.unsqueeze(0)
@@ -353,14 +357,14 @@ class LLMGenerationManager:
                     result.append(arr[i])
                 i += 1
             return result
-        raw_next_obs_ids = [replace_consecutive_elements(row,151655) for row in raw_next_obs_ids]
+        raw_next_obs_ids = [replace_consecutive_elements(row,self.config.image_pad_id) for row in raw_next_obs_ids] #151655
         raw_next_obs_ids = np.array(raw_next_obs_ids, dtype=object)
         rollings.non_tensor_batch['raw_prompt_ids'] = raw_next_obs_ids
         return rollings
 
     def deactivate_batch(self, active_mask,rollings):
         raw_prompt_ids = rollings.non_tensor_batch['raw_prompt_ids']
-        max_model_len = 10240
+        max_model_len = self.config.max_model_len
         curr_active_mask = torch.tensor([len(raw_prompt_ids_item) < max_model_len for raw_prompt_ids_item in raw_prompt_ids], dtype=torch.bool)
         active_mask = active_mask * curr_active_mask
         return active_mask

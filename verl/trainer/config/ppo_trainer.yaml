@@ -159,7 +159,11 @@ reward_model:
   use_dynamic_bsz: ${critic.use_dynamic_bsz}
   forward_max_token_len_per_gpu: ${critic.forward_max_token_len_per_gpu}
   reward_manager: rm
-  rm_url: "http://0.0.0.0:8003/eval"
+  rm_workers_num: 10 # 1 for debug
+  rm_url: "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions" # or local
+  rm_key: "Your API key here" # "EMPTY" or "YOUR_API_KEY"
+  rm_model_name: "qwen-max-latest" # "Qwen/Qwen2.5-7B-Instruct"
+
 
 custom_reward_function:
   path: null
