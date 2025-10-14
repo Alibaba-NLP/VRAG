@@ -259,6 +259,7 @@ You can customize your own rollout module in the ```./vrag_agent/generation.py``
 This work is implemented based on [ViDoRAG](https://github.com/Alibaba-NLP/ViDoRAG), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), [Search-R1](https://github.com/PeterGriffinJin/Search-R1), and [verl](https://github.com/volcengine/verl). We greatly appreciate their valuable contributions to the community.
 
 
+
 ## 📝 Citation
 
 ```bigquery
