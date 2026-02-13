@@ -1,0 +1,62 @@
+{
+  "examples": [
+    {
+      "uid": 0,
+      "query": "According to the report, how do 5% of the Latinos see economic upward mobility for their children?",
+      "reference_answer": "Less well-off",
+      "meta_info": {
+        "file_name": "PH_2016.06.08_Economy-Final.pdf",
+        "reference_page": [
+          5
+        ],
+        "source_type": [
+          "Chart"
+        ],
+        "doc_type": "Research report / Introduction",
+        "answer_format": "Str"
+      }
+    },
+    {
+      "uid": 1,
+      "query": "According to the report, which one is greater in population in the survey? Foreign born Latinos, or the Latinos interviewed by cellphone?",
+      "reference_answer": "Latinos interviewed by cellphone",
+      "meta_info": {
+        "file_name": "PH_2016.06.08_Economy-Final.pdf",
+        "reference_page": [
+          19,
+          20
+        ],
+        "source_type": [
+          "Table"
+        ],
+        "doc_type": "Research report / Introduction",
+        "answer_format": "Str"
+      }
+    },
+    {
+      "uid": 2,
+      "query": "How much is the Trading Operating Profit in 2011 according to the Nestle 2011 Full Year Roadshow presentation?",
+      "reference_answer": "12.5 bn",
+      "meta_info": {
+        "file_name": "2012-02-20fy11roadshow-120221022442-phpapp02_95.pdf",
+        "reference_page": [
+          5
+        ],
+        "query_type": "Single-Hop_Single-Span"
+      }
+    },
+    {
+      "uid": 3,
+      "query": "How much is the Trading Operating Profit in the year Nestlé achieved the third largest Organic Growth in 10 years?",
+      "reference_answer": "12.5 bn",
+      "meta_info": {
+        "file_name": "2012-02-20fy11roadshow-120221022442-phpapp02_95.pdf",
+        "reference_page": [
+          5,
+          7
+        ],
+        "query_type": "Multi-Hop_Single-Span"
+      }
+    }
+  ]
+}
