@@ -4,7 +4,7 @@
 
 <div align="center">
 <p><strong>A Multi-Turn Multi-Modal Agent Training Framework</strong></p>
-<a href="https://arxiv.org/pdf/xxxx.xxxxx" target="_blank"><img src=https://img.shields.io/badge/arXiv-paper_VimRAG-red></a>
+<a href="https://arxiv.org/pdf/2602.12735v1" target="_blank"><img src=https://img.shields.io/badge/arXiv-paper_VimRAG-red></a>
 <a href="https://arxiv.org/pdf/2505.22019" target="_blank"><img src=https://img.shields.io/badge/arXiv-paper_VRAG-red></a>
 <a href="https://huggingface.co/Qiuchen-Wang/Qwen2.5-VL-7B-VRAG" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_model-blue></a>
 </div>
