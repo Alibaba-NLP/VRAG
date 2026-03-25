@@ -1,4 +1,5 @@
-# requirements.txt records the full set of dependencies for development
+# Demo dependencies for VRAG
+# Core dependencies for running the VRAG demo application
 transformers
 vllm==0.8.2
 openai
