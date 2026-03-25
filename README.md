@@ -12,21 +12,37 @@
 <a href="https://huggingface.co/Qiuchen-Wang/Qwen2.5-VL-7B-VRAG" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_Model-blue></a>
 </div>
 
+<div align="center">
+<p align="center">
+  <img src="assets/compare.png" width="90%" height="100%" />
+</p>
+</div>
+
 ---
 
 ## 📑 Table of Contents
 
-- [News](#-news)
-- [Overview & New Feature](#-overview--new-feature)
-- [Dependencies](#-dependencies)
-- [Quick Start](#-quick-start)
-- [Build Your Own Retriever](#-build-your-own-retriever)
-- [Run Demo](#-run-demo)
-- [Model Training](#-model-training)
-- [Project Structure](#-project-structure)
-- [Acknowledgments](#-acknowledgments)
-- [Citation](#-citation)
-- [Related Projects](#-related-projects)
+- [✨Moving Towards Next-Generation RAG via Multi-Modal Agentic Reinforcement Learning](#moving-towards-next-generation-rag-via-multi-modal-agentic-reinforcement-learning)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🔥 News](#-news)
+  - [🚀 Overview \& New Feature](#-overview--new-feature)
+  - [⚙️ Dependencies](#️-dependencies)
+  - [🚀 Quick Start](#-quick-start)
+    - [One-Command Launch](#one-command-launch)
+  - [🔍 Build Your Own Retriever](#-build-your-own-retriever)
+    - [Step 1: Prepare Corpus](#step-1-prepare-corpus)
+    - [Step 2: Build Index](#step-2-build-index)
+    - [Step 3: Start Search Engine API](#step-3-start-search-engine-api)
+  - [💻 Run Demo](#-run-demo)
+    - [VimRAG Demo (Recommended)](#vimrag-demo-recommended)
+    - [VRAG Demo (Local Model)](#vrag-demo-local-model)
+  - [⚙️ Model Training](#️-model-training)
+    - [VRAG-RL](#vrag-rl)
+    - [VimRAG](#vimrag)
+  - [📁 Project Structure](#-project-structure)
+  - [🙏 Acknowledgments](#-acknowledgments)
+  - [📝 Citation](#-citation)
+  - [🔗 Related Projects](#-related-projects)
 
 ---
 
