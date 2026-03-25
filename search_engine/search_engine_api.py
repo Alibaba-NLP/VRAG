@@ -1,49 +1,67 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, HTTPException, Request
+from typing import List
 import uvicorn
-from typing import List, Dict, Any  # 导入类型提示，让代码更清晰
 from search_engine import SearchEngine
-from tqdm import tqdm
-import os
 
-dataset_dir = './search_engine/corpus'
+app = FastAPI()
 
-# 创建 FastAPI 应用实例
-app = FastAPI(
-    title="Hybrid Search Engine API",
-    description="Provides search functionality using a pre-initialized HybridSearchEngine.",
-    version="1.0.0",
-)
+model_path = "/mnt/nas-alinlp/qiuchen.wqc/Qwen3-VL-Embedding-2B"
+corpus_path = ["/mnt/nas-alinlp/qiuchen.wqc/VRAG/search_engine/corpus/image_index"]
 
-# 全局变量，用于存储 HybridSearchEngine 实例
-search_engine=None
-# 在应用启动时初始化 HybridSearchEngine
-@app.on_event("startup")
-async def startup_event():
-    global search_engine
-    print("Initializing SearchEngine...")
-    search_engine = SearchEngine(dataset_dir, embed_model_name='vidore/colqwen2-v1.0')
+engine = SearchEngine(model_path)
+engine.load_multi_index_corpus_together(corpus_path)
 
+@app.post("/search")
+async def search(request: Request):
+    try:
+        body = await request.json()
+        queries = body.get("queries", [])
+        top_k = body.get("top_k", 3)
+        vrag_ret = body.get("vrag_ret", False)
 
-# 定义搜索 API 端点
-@app.get(
-    "/search",
-    summary="Perform a search query.",
-    description="Executes a search using the initialized SearchEngine and returns the results.",
-    response_model=List[List[Dict[str, Any]]]  # 定义响应模型，提高 API 文档的清晰度
-)
-async def search(queries: List[str] = Query(...)):
-    """
-    执行搜索操作。
+        search_results = engine.search(queries, top_k)
 
-    Args:
-        query: 搜索查询字符串。
+        if vrag_ret:
+            results_batch = []
+            for result in search_results:
+                data_list = result.get("data", []) if isinstance(result, dict) else []
+                query_images = []
+                for idx, item in enumerate(data_list):
+                    if isinstance(item, dict) and item.get("type") == "image":
+                        query_images.append(
+                            {
+                                "idx": idx,
+                                "image_file": item.get("file_path"),
+                            }
+                        )
+                results_batch.append(query_images)
+            return results_batch
 
-    Returns:
-        搜索结果列表。
-    """
-    results_batch = search_engine.batch_search(queries)
-    results_batch = [[dict(idx=idx,image_file=os.path.join(f'./search_engine/corpus/img',file)) for idx,file in enumerate(query_results)] for query_results in results_batch]
-    return results_batch
+        return {"results": search_results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8002)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
+
+"""
+Search Engine API - 多模态检索服务
+
+启动服务:
+    python search_engine_api.py
+
+测试示例 (curl):
+curl -X POST http://localhost:8001/search \
+    -H "Content-Type: application/json" \
+    -d '{"queries": ["查询1", "查询2"], "top_k": 3}'
+
+只有在 vrag_ret 为 True 时，返回结果才包含查询图片的文件路径。
+curl -X POST http://localhost:8001/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "queries": ["查询1", "查询2"],
+    "top_k": 3,
+    "vrag_ret": true
+  }'
+"""

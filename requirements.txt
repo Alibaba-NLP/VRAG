@@ -1,23 +1,31 @@
-# requirements.txt records the full set of dependencies for development
-transformers
-vllm==0.8.2
-openai
-streamlit
-git+https://github.com/illuin-tech/colpali@481eb200834f32b87f66dec34c0deb7cd4434146
+# Core ML framework
+torch>=2.0.0
 transformers>=4.50.3
-llama-cloud==0.1.5
-llama-index==0.12.0
-llama-index-agent-openai==0.4.0
-llama-index-cli==0.4.0
-llama-index-core==0.12.1
-llama-index-embeddings-huggingface==0.4.0
-llama-index-embeddings-openai==0.3.0
-llama-index-indices-managed-llama-cloud==0.6.2
-llama-index-legacy==0.9.48.post4
-llama-index-llms-openai==0.3.1
-llama-index-multi-modal-llms-openai==0.3.0
-llama-index-program-openai==0.3.0
-llama-index-question-gen-openai==0.3.0
-llama-index-readers-file==0.4.0
-llama-index-readers-llama-parse==0.4.0
-llama-parse==0.5.14
+numpy>=1.24.0
+
+# Vision and multimedia
+pillow>=10.0.0
+torchcodec>=0.1.0
+qwen-vl-utils>=0.0.1
+
+# LLM serving and API
+vllm>=0.8.2
+openai>=1.0.0
+
+# Search and indexing
+faiss-gpu>=1.8.0  # Use faiss-cpu if no GPU available
+
+# Web framework
+fastapi>=0.100.0
+uvicorn>=0.23.0
+streamlit>=1.28.0
+
+# Utilities
+requests>=2.31.0
+json5>=0.9.0
+tqdm>=4.66.0
+
+# Optional: for specific embedding models
+peft>=0.4.0  # Needed for GVE model LoRA support
+sentence-transformers>=2.2.0  # Needed for bge-m3 embedding model
+pdf2image>=1.16.0  # Needed for corpus preparation from PDF files

@@ -1,32 +1,44 @@
 
 
-# <div align="center">✨Moving Towards Next-Generation RAG via Multi-Modal Agentic Reinforcement Learning<div>
+# <div align="center">✨Moving Towards Next-Generation RAG via Multi-Modal Agentic Reinforcement Learning</div>
 
 <div align="center">
 <p><strong>A Multi-Turn Multi-Modal Agent Training Framework</strong></p>
 <a href="https://arxiv.org/pdf/2602.12735v1" target="_blank"><img src=https://img.shields.io/badge/arXiv-paper_VimRAG-red></a>
 <a href="https://arxiv.org/pdf/2505.22019" target="_blank"><img src=https://img.shields.io/badge/arXiv-paper_VRAG-red></a>
-<a href="https://huggingface.co/Qiuchen-Wang/Qwen2.5-VL-7B-VRAG" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_model-blue></a>
+<br>
+<a href="https://huggingface.co/collections/Alibaba-NLP/vrag" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_Collection-blue></a>
+<a href="https://huggingface.co/datasets/Qiuchen-Wang/ViDoSeek" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-ViDoSeek_Benchmark-blue></a>
+<a href="https://huggingface.co/Qiuchen-Wang/Qwen2.5-VL-7B-VRAG" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_Model-blue></a>
 </div>
 
-</p>
+---
 
-<div align="center">
-<p align="center">
-  <img src="assets/compare.png" width="90%" height="100%" />
-</p>
-</div>
+## 📑 Table of Contents
 
+- [News](#-news)
+- [Overview & New Feature](#-overview--new-feature)
+- [Dependencies](#-dependencies)
+- [Quick Start](#-quick-start)
+- [Build Your Own Retriever](#-build-your-own-retriever)
+- [Run Demo](#-run-demo)
+- [Model Training](#-model-training)
+- [Project Structure](#-project-structure)
+- [Acknowledgments](#-acknowledgments)
+- [Citation](#-citation)
+- [Related Projects](#-related-projects)
+
+---
 
 ## 🔥 News
+
 - ⏳ The project is still under ongoing development, and the training code of VimRAG will be available after being reviewed by the company.
 - 🎉 We have released the report of the **VimRAG**.
-- 🎉 We have released the retriever based on faiss, enable retrieval with [GVE embedding](https://huggingface.co/Alibaba-NLP/GVE-7B).
+- 🎉 We have released the retriever based on FAISS, enabling retrieval with [GVE embedding](https://huggingface.co/Alibaba-NLP/GVE-7B) and [Qwen3-VL-Embedding](https://github.com/QwenLM/Qwen3-VL-Embedding).
 - 🎉 We have released the demo of **VRAG-RL**, allowing you to customize your own VRAG.
 - 🎉 Our framework integrates SOTA visual embedding models, enabling you to create your own retriever.
 
-
-
+---
 
 ## 🚀 Overview & New Feature
 
@@ -37,11 +49,169 @@
 
 
 
+## ⚙️ Dependencies
+```bash
+# Create environment
+conda create -n vrag python=3.10
+# Clone project
+git clone https://github.com/alibaba-nlp/VRAG.git
+cd VRAG
+# Install dependencies for demo and retriever
+pip install -r requirements.txt
+```
 
+## 🚀 Quick Start
 
+**Please refer to `run_demo.sh` to quickly start the demo.** Below is a step-by-step guide to help you run the demo on our example data.
 
+### One-Command Launch
 
-<!-- <div align="center" style="background-color: #f0f0f0; padding: 5px; border-radius: 5px;">
+```bash
+# VimRAG (API-based, recommended for quick start)
+export DASHSCOPE_API_KEY=your_api_key
+./run_demo.sh vimrag
+# VRAG (Local model, requires A100 80G)
+./run_demo.sh vrag
+# Search engine only
+./run_demo.sh search
+```
+
+---
+
+## 🔍 Build Your Own Retriever
+
+### Step 1: Prepare Corpus
+
+**Images**: Place image files directly in the corpus directory:
+```bash
+cp /path/to/your/images/*.jpg search_engine/corpus/image/
+```
+
+**PDFs**: Convert PDF documents to images:
+```bash
+mkdir -p search_engine/corpus/pdf
+cp /path/to/your/documents/*.pdf search_engine/corpus/pdf/
+python search_engine/corpus/pdf2images.py
+```
+
+**Videos**: Split long videos into smaller chunks:
+```bash
+./search_engine/corpus/splitVideo.sh -i /path/to/videos -o search_engine/corpus/video -d 60
+```
+
+### Step 2: Build Index
+
+**Supported Embedding Models:**
+
+| Model | Dimension | Notes |
+|-------|-----------|-------|
+| `Alibaba-NLP/GVE-3B` | 2048 | Qwen2.5-VL-based embedding |
+| `Alibaba-NLP/GVE-7B` | 3584 | Higher quality, more VRAM |
+| `Qwen/Qwen3-VL-Embedding-2B` | 2048 | Qwen3-VL-based embedding |
+| `Qwen/Qwen3-VL-Embedding-8B` | 4096 | Higher quality, more VRAM |
+
+**Build the Index:**
+```python
+from search_engine.search_engine import SearchEngine
+
+# Initialize with your chosen embedding model
+engine = SearchEngine("/path/to/Qwen3-VL-Embedding-2B")
+
+# Build index from your corpus
+engine.build_index(
+    input_dir="search_engine/corpus/image",
+    index_output_path="search_engine/corpus/image_index",
+    corpus_output_path="search_engine/corpus/image_index",
+    bs=16  # Adjust based on memory
+)
+```
+
+> **Note:** The index is automatically saved periodically. If interrupted, re-running will resume from the last checkpoint.
+
+### Step 3: Start Search Engine API
+
+Edit `search_engine/search_engine_api.py` to configure paths:
+```python
+model_path = "/path/to/your/embedding/model"
+corpus_path = ["search_engine/corpus/image_index"]
+```
+
+Launch the API server:
+```bash
+python search_engine/search_engine_api.py
+```
+
+Test the endpoint:
+```bash
+curl -X POST http://localhost:8001/search \
+    -H "Content-Type: application/json" \
+    -d '{"queries": ["your search query"], "top_k": 3}'
+```
+
+---
+
+## 💻 Run Demo
+
+### VimRAG Demo (Recommended)
+
+VimRAG uses Qwen3.5-Plus via DashScope API — no local GPU required for model inference.
+
+<div align="center">
+<img src="assets/vimrag.png" width="80%" />
+</div>
+
+**Features:**
+- Real-time DAG visualization of reasoning process
+- Multimodal memory graph
+- Extended thinking mode
+- Streaming output
+
+**Launch:**
+```bash
+export DASHSCOPE_API_KEY=your_api_key
+./run_demo.sh vimrag
+```
+
+**Manual Launch:**
+```bash
+# Terminal 1: Start search engine
+python search_engine/search_engine_api.py
+
+# Terminal 2: Launch Streamlit demo
+streamlit run demo/vimrag_app.py
+```
+
+**Configuration Options:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| API Base URL | `https://dashscope.aliyuncs.com/compatible-mode/v1` | DashScope Qwen API endpoint |
+| Search Engine URL | `http://localhost:8001/search` | Local search engine endpoint |
+| Model | `qwen3.5-plus` | Model to use (supports multimodal reasoning) |
+| Max Steps | `20` | Maximum reasoning iterations |
+| Search Top-K | `3` | Number of results per search |
+
+**Programmatic Usage:**
+```python
+import os
+from demo.vimrag_agent import VimRAG
+
+agent = VimRAG(
+    base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    search_url="http://localhost:8001/search",
+    model_name="qwen3.5-plus",
+    api_key=os.environ.get("DASHSCOPE_API_KEY"),
+    enable_thinking=True
+)
+
+for event in agent.run({"query": "Your question here"}):
+    if event["event"] == "answer":
+        print(event["content"])
+```
+
+### VRAG Demo (Local Model)
+
+<div align="center" style="background-color: #f0f0f0; padding: 5px; border-radius: 5px;">
   <table style="border-collapse: collapse; margin: 0 auto;">
     <tr>
       <td style="padding: 5px;">
@@ -56,127 +226,148 @@
     </tr>
   </table>
 </div>
- -->
 
-## 🔍 Quick Start for VimRAG
-The project is under review by the company, coming soon.
+<https://github.com/user-attachments/assets/6d9bd7af-4ad9-4804-910b-2b2c5b2e0c35>
 
-## 🔍 Quick Start for VRAG-RL
+<https://github.com/user-attachments/assets/22c90e3e-ec04-4967-9bb9-52d8c1ebd410>
 
-**Please refer to `run_demo.sh` to quickly start the demo.** Below is a step-by-step guide to help you run the demo on our example data:
 
-### Dependencies
+VRAG uses a locally deployed Qwen2.5-VL-7B model via vLLM.
+
+**Launch:**
 ```bash
-# Create environment
-conda create -n vrag python=3.10
-# Clone project
-git clone https://github.com/alibaba-nlp/VRAG.git
-cd VRAG
-# Install requirements for demo only
-pip install -r requirements_demo.txt
+
+./run_demo.sh vrag
 ```
 
-### Run VRAG Demo
-
-First, you need to launch the search engine, which utilizes the Colpali embedding model family. It is preferable to deploy the search engine independently on a single GPU.
+**Manual Launch:**
 ```bash
-## Deploy search engine server
+# Terminal 1: Start search engine (port 8001)
 python search_engine/search_engine_api.py
-```
-Then download the model and deploy the server using vllm. For a 7B model, it can be deployed on a single A100 80G GPU.
-```bash
-vllm serve autumncc/Qwen2.5-VL-7B-VRAG --port 8001 --host 0.0.0.0 --limit-mm-per-prompt image=10 --served-model-name Qwen/Qwen2.5-VL-7B-Instruct
-```
-Finally, use Streamlit to launch the demo.
-```bash
+
+# Terminal 2: Start vLLM server (port 8002)
+vllm serve autumncc/Qwen2.5-VL-7B-VRAG \
+    --port 8002 \
+    --host 0.0.0.0 \
+    --limit-mm-per-prompt image=10 \
+    --served-model-name Qwen/Qwen2.5-VL-7B-Instruct
+
+# Terminal 3: Launch Streamlit demo
 streamlit run demo/app.py
 ```
 
-## 💻 Build Your Own VRAG-RL
-Below is a step-by-step guide to help you run the VRAG on your own corpus, the entire process is divided into three steps: 
-- The 1st and 2nd step are aimed at building your own purely vision-based search engine, 
-- The 3rd step, similar to the quick start, is to launch the demo.
-
-You should first convert your document to `.jpg` and store it in the `search_engine/corpus/img` with script `search_engine/corpus/pdf2images.py`. 
-
-### Step1. Build the Index Database
-Our framework is built on the foundation of the Llama-Index. We preprocess the corpus in advance and then establish an index database. 
-
-Before embedding the whole dataset, you can run `./search_engine/vl_embedding.py` to check whether the embedding model is loaded correctly:
+**Programmatic Usage:**
 ```python
-# Test embedding model
-python ./search_engine/vl_embedding.py
-```
-Then, you can run `ingestion.py` to embedding the whole dataset:
-```python
-# Document ingestion and Multi-Modal Embedding
-python ./search_engine/ingestion.py
+from demo.vrag_agent import VRAG
+
+vrag = VRAG(
+    base_url="http://0.0.0.0:8002/v1",
+    search_url="http://0.0.0.0:8001/search",
+    generator=False,
+    api_key="EMPTY"
+)
+
+answer = vrag.run("Your question here")
 ```
 
-### Step2. Run Multi-Modal Retriever
-Try using the search engine in `./search_engine/search_engine.py`:
-```python
-# initial engine
-search_engine = SearchEngine(dataset_dir='search_engine/corpus', node_dir_prefix='colqwen_ingestion',embed_model_name='vidore/colqwen2-v1.0')
-# Retrieve some results
-recall_results = search_engine.batch_search(['some query A', 'some query B'])
-```
-Once the corpus and models for the search engine is prepared, you can directly run the search engine API server:
-```bash
-# run search engine server with fastapi
-python search_engine/search_engine_api.py
-```
-
-### Step3. Run VRAG
-Just like in the quick start guide, you can run the demo after deploying the VLM service:
-```bash
-vllm serve Qwen/Qwen2.5-VL-7B-Instruct --port 8001 --host 0.0.0.0 --limit-mm-per-prompt image=10 --served-model-name Qwen/Qwen2.5-VL-7B-Instruct
-```
-Use Streamlit to launch the demo.
-```bash
-streamlit run demo/app.py
-```
-Optionly, You can directly use our script for generation in `demo/vrag_agent.py` or you can integrate it into your own framework:
-```python
-from vrag_agent import VRAG
-vrag = VRAG(base_url='http://0.0.0.0:8001/v1', search_url='http://0.0.0.0:8002/search', generator=False)
-answer = vrag.run('What is the capital of France?')
-```
-
+---
 
 ## ⚙️ Model Training
 
-Training code & Documents for VRAG-RL (Qwen2.5-VL) are in `VRAG-RL` directory.
+### VRAG-RL
 
-The code of VimRAG (Qwen3-VL) will be released soon~
+Training code for VRAG-RL is available in the `VRAG-RL/` directory.
+
+**Installation:**
+```bash
+cd VRAG-RL
+pip install -e .
+pip install -r requirements_train.txt
+```
+
+**Start Training:**
+```bash
+./train_grpo_qwen2_5_vl_7b.sh
+```
 
 <div align="center">
-<p align="center">
-  <img src="assets/vimrag_train.png" width="90%" height="60%" />
-</p>
+<img src="assets/rl.jpg" width="80%" />
 </div>
 
-## 🙏 Acknowledge
+See [`VRAG-RL/README.md`](VRAG-RL/README.md) for detailed training instructions.
+
+### VimRAG
+
+> **Note:** VimRAG training code (Qwen3-VL) will be released after company review.
+
+<div align="center">
+<img src="assets/vimrag_train.png" width="90%" />
+</div>
+
+
+---
+
+## 📁 Project Structure
+
+```
+VRAG/
+├── demo/                      # Demo applications
+│   ├── app.py                 # VRAG Streamlit demo
+│   ├── vimrag_app.py          # VimRAG Streamlit demo
+│   ├── vrag_agent.py          # VRAG agent implementation
+│   └── vimrag_agent.py        # VimRAG agent implementation
+├── search_engine/             # Multimodal retrieval engine
+│   ├── models/                # Embedding models (GVE, Qwen3-VL)
+│   ├── corpus/                # Corpus and index storage
+│   ├── search_engine.py       # Core search engine
+│   └── search_engine_api.py   # FastAPI server
+├── VRAG-RL/                   # RL training framework
+│   ├── verl/                  # Training infrastructure
+│   ├── vrag_agent/            # Agent for training
+│   └── train_grpo_qwen2_5_vl_7b.sh
+├── assets/                    # Images and demos
+├── requirements.txt           # Dependencies
+└── run_demo.sh                # Launch script
+```
+
+---
+
+## 🙏 Acknowledgments
+
 This work is implemented based on [ViDoRAG](https://github.com/Alibaba-NLP/ViDoRAG), [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory), [Search-R1](https://github.com/PeterGriffinJin/Search-R1), and [verl](https://github.com/volcengine/verl). We greatly appreciate their valuable contributions to the community.
 
-
+---
 
 ## 📝 Citation
 
-```bigquery
-@misc{wang2025vragrlempowervisionperceptionbasedrag,
-      title={VRAG-RL: Empower Vision-Perception-Based RAG for Visually Rich Information Understanding via Iterative Reasoning with Reinforcement Learning}, 
-      author={Qiuchen Wang and Ruixue Ding and Yu Zeng and Zehui Chen and Lin Chen and Shihang Wang and Pengjun Xie and Fei Huang and Feng Zhao},
-      year={2025},
-      eprint={2505.22019},
-      archivePrefix={arXiv},
-      primaryClass={cs.CL},
-      url={https://arxiv.org/abs/2505.22019}, 
+```bibtex
+@article{wang2025vrag,
+  title={Vrag-rl: Empower vision-perception-based rag for visually rich information understanding via iterative reasoning with reinforcement learning},
+  author={Wang, Qiuchen and Ding, Ruixue and Zeng, Yu and Chen, Zehui and Chen, Lin and Wang, Shihang and Xie, Pengjun and Huang, Fei and Zhao, Feng},
+  journal={arXiv preprint arXiv:2505.22019},
+  year={2025}
+}
+
+@article{wang2026vimrag,
+  title={VimRAG: Navigating Massive Visual Context in Retrieval-Augmented Generation via Multimodal Memory Graph},
+  author={Wang, Qiuchen and Wang, Shihang and Zeng, Yu and Zhang, Qiang and Zhang, Fanrui and Guo, Zhuoning and Zhang, Bosi and Huang, Wenxuan and Chen, Lin and Chen, Zehui and others},
+  journal={arXiv preprint arXiv:2602.12735},
+  year={2026}
 }
 ```
 
-## Our Projects
-Explore our additional research on Visual Retrieval-augmented Generation.
+---
 
-ViDoRAG: Visual Document Retrieval-Augmented Generation via Dynamic Iterative Reasoning Agents. A novel RAG framework that utilizes a multi-agent, actor-critic paradigm for iterative reasoning, enhancing the noise robustness of generation models. Code released at: [https://github.com/Alibaba-NLP/ViDoRAG](https://github.com/Alibaba-NLP/ViDoRAG) [![GitHub stars](https://img.shields.io/github/stars/Alibaba-NLP/ViDoRAG?style=social)](https://github.com/Alibaba-NLP/ViDoRAG)
+## 🔗 Related Projects
 
+Explore our additional research on Visual Retrieval-Augmented Generation:
+
+[![ViDoRAG](https://img.shields.io/badge/GitHub-ViDoRAG-blue?logo=github)](https://github.com/Alibaba-NLP/ViDoRAG) [![GitHub stars](https://img.shields.io/github/stars/Alibaba-NLP/ViDoRAG?style=social)](https://github.com/Alibaba-NLP/ViDoRAG)
+
+**ViDoRAG**: Visual Document Retrieval-Augmented Generation via Dynamic Iterative Reasoning Agents. A novel RAG framework that utilizes a multi-agent, actor-critic paradigm for iterative reasoning, enhancing the noise robustness of generation models.
+
+---
+
+<div align="center">
+<sub>Made with ❤️ by Alibaba NLP</sub>
+</div>
