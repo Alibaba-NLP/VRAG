@@ -12,6 +12,8 @@
 <a href="https://huggingface.co/Qiuchen-Wang/Qwen2.5-VL-7B-VRAG" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_Model-blue></a>
 </div>
 
+---
+
 <div align="center">
 <p align="center">
   <img src="assets/compare.png" width="90%" height="100%" />
