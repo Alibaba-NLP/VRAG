@@ -52,7 +52,9 @@
 
 ## 🔍 Quick Start
 
-**Please refer to `run_demo.sh` to quickly start the demo.** Below is a step-by-step guide to help you run the demo on our example data:
+**Please refer to `run_demo.sh` in the project root to quickly start the demo.** Below is a step-by-step guide to help you run the demo on our example data:
+
+> **Note**: The Quick Start commands should be run from the project root (`VRAG/`) directory.
 
 ### Dependencies
 ```bash
@@ -62,22 +64,23 @@ conda create -n vrag python=3.10
 git clone https://github.com/alibaba-nlp/VRAG.git
 cd VRAG
 # Install requirements for demo only
-pip install -r requirements_demo.txt
+pip install -r VRAG-RL/requirements_demo.txt
 ```
 
 ### Run VRAG Demo
 
-First, you need to launch the search engine, which utilizes the Colpali embedding model family. It is preferable to deploy the search engine independently on a single GPU.
+First, you need to launch the search engine, which utilizes the ColPali embedding model family. It is preferable to deploy the search engine independently on a single GPU.
 ```bash
-## Deploy search engine server
+# Deploy search engine server (run from project root VRAG/)
 python search_engine/search_engine_api.py
 ```
 Then download the model and deploy the server using vllm. For a 7B model, it can be deployed on a single A100 80G GPU.
 ```bash
-vllm serve autumncc/Qwen2.5-VL-7B-VRAG --port 8001 --host 0.0.0.0 --limit-mm-per-prompt image=10 --served-model-name Qwen/Qwen2.5-VL-7B-Instruct
+vllm serve autumncc/Qwen2.5-VL-7B-VRAG --port 8002 --host 0.0.0.0 --limit-mm-per-prompt image=10 --served-model-name Qwen/Qwen2.5-VL-7B-Instruct
 ```
 Finally, use Streamlit to launch the demo.
 ```bash
+# Run from project root VRAG/
 streamlit run demo/app.py
 ```
 
@@ -86,49 +89,51 @@ Below is a step-by-step guide to help you run the VRAG on your own corpus, the e
 - The 1st and 2nd step are aimed at building your own purely vision-based search engine, 
 - The 3rd step, similar to the quick start, is to launch the demo.
 
-You should first convert your document to `.jpg` and store it in the `search_engine/corpus/img` with script `search_engine/corpus/pdf2images.py`. 
+You should first convert your document to `.jpg` and store it in the `search_engine/corpus/image/` directory using the script `search_engine/corpus/pdf2images.py`. 
 
 ### Step1. Build the Index Database
-Our framework is built on the foundation of the Llama-Index. We preprocess the corpus in advance and then establish an index database. 
+Our framework is built on the foundation of the Llama-Index. We preprocess the corpus in advance and then establish an index database.
 
-Before embedding the whole dataset, you can run `./search_engine/vl_embedding.py` to check whether the embedding model is loaded correctly:
-```python
-# Test embedding model
-python ./search_engine/vl_embedding.py
-```
-Then, you can run `ingestion.py` to embedding the whole dataset:
-```python
-# Document ingestion and Multi-Modal Embedding
-python ./search_engine/ingestion.py
-```
+The embedding models are located in `search_engine/models/`. You can test and use the search engine directly:
 
 ### Step2. Run Multi-Modal Retriever
-Try using the search engine in `./search_engine/search_engine.py`:
+Try using the search engine in `search_engine/search_engine.py` (from project root):
 ```python
-# initial engine
-search_engine = SearchEngine(dataset_dir='search_engine/corpus', node_dir_prefix='colqwen_ingestion',embed_model_name='vidore/colqwen2-v1.0')
+from search_engine.search_engine import SearchEngine
+
+# Initialize engine
+search_engine = SearchEngine(
+    dataset_dir='search_engine/corpus',
+    node_dir_prefix='colqwen_ingestion',
+    embed_model_name='vidore/colqwen2-v1.0'
+)
 # Retrieve some results
 recall_results = search_engine.batch_search(['some query A', 'some query B'])
 ```
-Once the corpus and models for the search engine is prepared, you can directly run the search engine API server:
+Once the corpus and models for the search engine are prepared, you can directly run the search engine API server:
 ```bash
-# run search engine server with fastapi
+# Run search engine server with FastAPI (from project root VRAG/)
 python search_engine/search_engine_api.py
 ```
 
 ### Step3. Run VRAG
 Just like in the quick start guide, you can run the demo after deploying the VLM service:
 ```bash
-vllm serve Qwen/Qwen2.5-VL-7B-Instruct --port 8001 --host 0.0.0.0 --limit-mm-per-prompt image=10 --served-model-name Qwen/Qwen2.5-VL-7B-Instruct
+vllm serve Qwen/Qwen2.5-VL-7B-Instruct --port 8002 --host 0.0.0.0 --limit-mm-per-prompt image=10 --served-model-name Qwen/Qwen2.5-VL-7B-Instruct
 ```
-Use Streamlit to launch the demo.
+Use Streamlit to launch the demo (from project root VRAG/).
 ```bash
 streamlit run demo/app.py
 ```
-Optionly, You can directly use our script for generation in `demo/vrag_agent.py` or you can integrate it into your own framework:
+Optionally, you can directly use our script for generation in `demo/vrag_agent.py` or integrate it into your own framework:
 ```python
-from vrag_agent import VRAG
-vrag = VRAG(base_url='http://0.0.0.0:8001/v1', search_url='http://0.0.0.0:8002/search', generator=False)
+from demo.vrag_agent import VRAG
+
+vrag = VRAG(
+    base_url='http://0.0.0.0:8002/v1',
+    search_url='http://0.0.0.0:8001/search',
+    generator=False
+)
 answer = vrag.run('What is the capital of France?')
 ```
 
@@ -143,10 +148,10 @@ answer = vrag.run('What is the capital of France?')
 
 ### Training Dependencies
 ```bash
-cd VRAG
+cd VRAG/VRAG-RL
 # Install requirements for training
 pip install -r requirements_train.txt
-# Install training dependencies
+# Install the VRAG-RL package
 pip install -e .
 ```
 
@@ -155,8 +160,8 @@ pip install -e .
 #### Benchmark & Training Data
 Please download the original document repositories and queries for each benchmark separately from [SlideVQA](https://huggingface.co/datasets/NTT-hil-insight/SlideVQA), [ViDoSeek](https://huggingface.co/datasets/autumncc/ViDoSeek) and [MMLongBench-Doc](https://huggingface.co/datasets/yubo2333/MMLongBench-Doc). For training, we mixed part of the [SlideVQA](https://huggingface.co/datasets/NTT-hil-insight/SlideVQA) training set to create the training data. The SlideVQA-train can be used as an example to construct SFT data and RL data. During evaluation, we suggest merge all benchmark corpora into a single corpus to create a more challenging setting that simulates real-world scenarios.
 
-#### Example Data & Dataset Convertion
-Organize all data into the following format, a reference example will be provided in ```examples``` directory.
+#### Example Data & Dataset Conversion
+Organize all data into the following format. Reference examples are provided in the `examples/` directory.
 ```json
 {
     "uid": "04d8bb0db929110f204723c56e5386c1d8d21587_2",
@@ -171,9 +176,10 @@ Organize all data into the following format, a reference example will be provide
 }
 ```
 
-Use the script `./scripts/hf_dataset_convert.py` to convert the unified format to Parquet.
+Use the script `scripts/hf_dataset_convert.py` to convert the unified format to Parquet.
 ```bash
-python ./scripts/hf_dataset_convert.py
+# Run from VRAG-RL/ directory
+python scripts/hf_dataset_convert.py
 ```
 
 ### Step2. Build Training Corpus & Run Multi-Modal Search Engine.
@@ -182,9 +188,9 @@ Follow the above section to construct your own corpus and start the search engin
 
 ### Step3. Construct High-quality CoT & Learn Patterns via SFT.
 
-To construct high-quality data using scripts `./scripts/data_construct_pipeline.py`, you are welcome to use DashScope based on Alibaba Cloud. You need to set the environment variable `DASH_SCOPE_KEY`:
+To construct high-quality data using `scripts/data_construct_pipeline.py`, you can use DashScope based on Alibaba Cloud. You need to set the environment variable `DASHSCOPE_API_KEY`:
 ```bash
-export DASH_SCOPE_KEY=xxx
+export DASHSCOPE_API_KEY=xxx
 ```
 Please note that for expert models, we recommend using models with consistent coordinate systems. If different models are used, it is necessary to map the coordinates to the same coordinate system.
 ```python
@@ -207,7 +213,7 @@ def convert_to_qwen25vl_format(bbox, orig_height, orig_width, factor=28, min_pix
     return [x1_new, y1_new, x2_new, y2_new]
 ```
 
-Here, you can use a script `./scripts/cot_convert_sft.py` to convert the sampled data into the llama factory format and then proceed with training using the [llama factory](https://github.com/hiyouga/LLaMA-Factory). When fine-tuning the Qwen2.5VL model, please pay special attention to the maximum and minimum values of the coordinates. You need to normalize the coordinates and images to the same scale, This is also the key to the crop&zoom action: 
+Here, you can use the script `scripts/cot_convert_sft.py` to convert the sampled data into the LLaMA-Factory format and then proceed with training using [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory). When fine-tuning the Qwen2.5VL model, please pay special attention to the maximum and minimum values of the coordinates. You need to normalize the coordinates and images to the same scale, This is also the key to the crop&zoom action: 
 
 $$\hat{\mathcal{R}} = Crop(\mathbf{I}_{raw}, [x_{min} \times \frac{w_{raw}}{w_{encoder}}, y_{min} \times \frac{h_{raw}}{h_{encoder}}, x_{max} \times \frac{w_{raw}}{w_{encoder}}, y_{max} \times \frac{h_{raw}}{h_{encoder}}]).$$
 
@@ -217,7 +223,7 @@ You can find relevant reference code in the [https://github.com/QwenLM/Qwen3-VL/
 
 #### Reward Function
 
-You can customize your own training reward function in the ```./verl/workers/reward_manager/rm.py```. In this project, we simply modify the reward manager to implement a model-based reward. You can choose to deploy your own model with [vLLM](https://docs.vllm.ai/en/stable/configuration/serve_args.html) or use an [API](https://bailian.console.aliyun.com/#/home). 
+You can customize your own training reward function in `verl/workers/reward_manager/rm.py`. In this project, we simply modify the reward manager to implement a model-based reward. You can choose to deploy your own model with [vLLM](https://docs.vllm.ai/en/stable/configuration/serve_args.html) or use an [API](https://bailian.console.aliyun.com/#/home). 
 ```bash
 # works num for reward model, depends on your qps
 reward_model.rm_workers_num=10 \
@@ -231,7 +237,7 @@ reward_model.rm_model_name="qwen-max-latest" \
 
 #### Rollout Module
 
-You can customize your own rollout module in the ```./vrag_agent/generation.py```. The Main Function is ```run_llm_loop```, which contains Generation -> Parse Action -> Observation -> Check Termination :
+You can customize your own rollout module in `vrag_agent/generation.py`. The main function is `run_llm_loop`, which contains Generation -> Parse Action -> Observation -> Check Termination:
 
 - Generation ```generate_with_gpu_padding``` pads the training batch and performs generation.
 - Parse Action ```execute_predictions``` interprets the model's output and call API based on various actions to obtain the raw observation.
@@ -240,7 +246,7 @@ You can customize your own rollout module in the ```./vrag_agent/generation.py``
 
 #### Start Training
 ```bash
-# start script
+# Run from VRAG-RL/ directory
 ./train_grpo_qwen2_5_vl_7b.sh
 ```
 
