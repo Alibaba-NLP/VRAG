@@ -389,3 +389,4 @@ Explore our additional research on Visual Retrieval-Augmented Generation:
 <div align="center">
 <sub>Made with ❤️ by Alibaba NLP</sub>
 </div>
+  
