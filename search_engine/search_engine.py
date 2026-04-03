@@ -335,7 +335,7 @@ class SearchEngine:
 if __name__ == '__main__':
     # engine = SearchEngine("GVE-Qwen25-VL-7B")
     # engine = SearchEngine("Alibaba-NLP/GVE-7B")
-    engine = SearchEngine("/mnt/nas-alinlp/qiuchen.wqc/Qwen3-VL-Embedding-2B")
+    engine = SearchEngine("Qwen3-VL-Embedding-2B")
 
     bs_video = 1
     bs_image = 16

@@ -13,8 +13,8 @@ prompt_ins = '''Answer the given question. You must conduct reasoning inside <th
 
 class VRAG:
     def __init__(self, 
-                base_url='http://0.0.0.0:8001/v1', 
-                search_url='http://0.0.0.0:8002/search',
+                base_url='http://0.0.0.0:8002/v1', 
+                search_url='http://0.0.0.0:8001/search',
                 generator=True,
                 api_key='EMPTY'):
         
@@ -56,10 +56,10 @@ class VRAG:
 
         return image, base64_qwen
     
-    def search(self,query):
-        if isinstance(query,str):
+    def search(self, query):
+        if isinstance(query, str):
             query = [query]
-        search_response = requests.get(self.search_url, params={"queries": query})
+        search_response = requests.post(self.search_url, json={"queries": query, "top_k": 3})
         search_results = search_response.json()
         image_path_list = [result['image_file'] for result in search_results[0]]
         return image_path_list

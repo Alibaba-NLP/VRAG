@@ -5,8 +5,8 @@ from search_engine import SearchEngine
 
 app = FastAPI()
 
-model_path = "/mnt/nas-alinlp/qiuchen.wqc/Qwen3-VL-Embedding-2B"
-corpus_path = ["/mnt/nas-alinlp/qiuchen.wqc/VRAG/search_engine/corpus/image_index"]
+model_path = "Qwen3-VL-Embedding-2B"
+corpus_path = ["search_engine/corpus/image_index"]
 
 engine = SearchEngine(model_path)
 engine.load_multi_index_corpus_together(corpus_path)
