@@ -8,8 +8,10 @@
 <a href="https://arxiv.org/pdf/2505.22019" target="_blank"><img src=https://img.shields.io/badge/arXiv-paper_VRAG-red></a>
 <br>
 <a href="https://huggingface.co/collections/Alibaba-NLP/vrag" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_Collection-blue></a>
-<a href="https://huggingface.co/datasets/Qiuchen-Wang/ViDoSeek" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-ViDoSeek_Benchmark-blue></a>
 <a href="https://huggingface.co/Qiuchen-Wang/Qwen2.5-VL-7B-VRAG" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-VRAG_Model-blue></a>
+<br>
+<a href="https://huggingface.co/datasets/Qiuchen-Wang/ViDoSeek" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-ViDoSeek_Benchmark-blue></a>
+<a href="https://huggingface.co/datasets/Alibaba-NLP/xvbench" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-XVBench_Benchmark-blue></a>
 </div>
 
 ---
