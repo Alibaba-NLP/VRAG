@@ -12,8 +12,12 @@
 <br>
 <a href="https://huggingface.co/datasets/Qiuchen-Wang/ViDoSeek" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-ViDoSeek_Benchmark-blue></a>
 <a href="https://huggingface.co/datasets/Alibaba-NLP/xvbench" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-XVBench_Benchmark-blue></a>
+<br>
+<a href="https://www.modelscope.cn/collections/iic/VRAG" target="_blank"><img src=https://img.shields.io/badge/ModelScope-VRAG_Collection-624aff?logo=modelscope></a>
+<a href="https://www.modelscope.cn/models/iic/Qwen2.5-VL-7B-VRAG" target="_blank"><img src=https://img.shields.io/badge/ModelScope-VRAG_Model-624aff?logo=modelscope></a>
+<a href="https://www.modelscope.cn/datasets/iic/ViDoSeek" target="_blank"><img src=https://img.shields.io/badge/ModelScope-ViDoSeek_Benchmark-624aff?logo=modelscope></a>
+<!-- <a href="https://huggingface.co/datasets/Alibaba-NLP/xvbench" target="_blank"><img src=https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-XVBench_Benchmark-blue></a> -->
 </div>
-
 ---
 
 <div align="center">
